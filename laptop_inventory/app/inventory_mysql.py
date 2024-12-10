@@ -60,7 +60,15 @@ def read_items():
 
     cursor = mysql.connection.cursor()
     try:
-        cursor.execute("SELECT * FROM inventory WHERE user_id = %s", (session['user_id'],))
+        # Admins can see all their created items
+        if session['role'] == 'admin':
+            cursor.execute("SELECT * FROM inventory WHERE user_id = %s", (session['user_id'],))
+        # Users can see all the items
+        elif session['role'] == 'user':
+            cursor.execute("SELECT * FROM inventory")
+        else:
+            return jsonify({"error": "Unauthorized role"}), 403
+
         items = cursor.fetchall()
         return jsonify({"items": items}), 200
     finally:
@@ -75,7 +83,7 @@ def read_item(item_id):
 
     cursor = mysql.connection.cursor()
     try:
-        cursor.execute("SELECT * FROM inventory WHERE id = %s AND user_id = %s", (item_id, session['user_id']))
+        cursor.execute("SELECT * FROM inventory WHERE id = %s ")
         item = cursor.fetchone()
         if not item:
             return jsonify({"error": "Item not found"}), 404

@@ -61,10 +61,22 @@ def read_items():
         return jsonify({"error": "Unauthorized access"}), 403
 
     inventory = mongo_client.laptop_inventory.inventory
-    items = list(inventory.find({"user_id": session['user_id']}, {"_id": 1, "item_name": 1, "description": 1, "quantity": 1, "price": 1}))
+
+    if session['role'] == 'admin':
+        # Admins can only view items they created
+        items = list(inventory.find({"user_id": session['user_id']}, {"_id": 1, "item_name": 1, "description": 1, "quantity": 1, "price": 1}))
+    elif session['role'] == 'user':
+        # Users can view all items
+        items = list(inventory.find({}, {"_id": 1, "item_name": 1, "description": 1, "quantity": 1, "price": 1}))
+    else:
+        return jsonify({"error": "Unauthorized role"}), 403
+
+    # Convert ObjectId to string for JSON serialization
     for item in items:
-        item['_id'] = str(item['_id'])  # Convert ObjectId to string for JSON serialization
+        item['_id'] = str(item['_id'])
+
     return jsonify({"items": items}), 200
+
 
 
 # READ Single Inventory Item by ID
@@ -74,11 +86,22 @@ def read_item(item_id):
         return jsonify({"error": "Unauthorized access"}), 403
 
     inventory = mongo_client.laptop_inventory.inventory
-    item = inventory.find_one({"_id": ObjectId(item_id), "user_id": session['user_id']})
+
+    if session['role'] == 'admin':
+        # Admins can only view items they created
+        item = inventory.find_one({"_id": ObjectId(item_id), "user_id": session['user_id']})
+    elif session['role'] == 'user':
+        # Users can view any item
+        item = inventory.find_one({"_id": ObjectId(item_id)})
+    else:
+        return jsonify({"error": "Unauthorized role"}), 403
+
     if not item:
         return jsonify({"error": "Item not found"}), 404
 
-    item['_id'] = str(item['_id'])  # Convert ObjectId to string for JSON serialization
+    # Convert ObjectId to string for JSON serialization
+    item['_id'] = str(item['_id'])
+
     return jsonify(item), 200
 
 
