@@ -2,14 +2,20 @@ from flask import Flask
 from flask_mysqldb import MySQL
 from pymongo import MongoClient
 from flask_bcrypt import Bcrypt
+from datetime import timedelta
+
 
 mysql = MySQL()
 mongo_client = None
 bcrypt = Bcrypt()
 
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
+
+    # Configure session timeout
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 
     # Initialize MySQL
     mysql.init_app(app)

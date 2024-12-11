@@ -114,3 +114,12 @@ def login():
     session['role'] = user['role']  # Store role for access control
 
     return jsonify({"message": f"Logged in as {user['role']} successfully"}), 200
+
+# User Logout
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    if 'user_id' in session:
+        session.clear()  # Clear all session data
+        return jsonify({"message": "Logged out successfully"}), 200
+    else:
+        return jsonify({"error": "No active session found"}), 400

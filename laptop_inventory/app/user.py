@@ -9,7 +9,7 @@ def get_inventory():
         return jsonify({"error": "Users only"}), 403
 
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM inventory WHERE user_id = %s", (session['user_id'],))
+    cursor.execute("SELECT * FROM inventory")
     inventory = cursor.fetchall()
 
     return jsonify({"inventory": inventory}), 200

@@ -83,14 +83,21 @@ def read_item(item_id):
 
     cursor = mysql.connection.cursor()
     try:
-        cursor.execute("SELECT * FROM inventory WHERE id = %s ")
+        if session['role'] == 'admin':
+            # Admins can only access items they created
+            cursor.execute("SELECT * FROM inventory WHERE id = %s AND user_id = %s", (item_id, session['user_id']))
+        elif session['role'] == 'user':
+            # Users can access all items
+            cursor.execute("SELECT * FROM inventory WHERE id = %s", (item_id,))
+        else:
+            return jsonify({"error": "Unauthorized role"}), 403
+
         item = cursor.fetchone()
         if not item:
             return jsonify({"error": "Item not found"}), 404
         return jsonify(item), 200
     finally:
         cursor.close()
-
 
 # UPDATE Inventory Item
 @inventory_mysql_bp.route('/items/<int:item_id>', methods=['PUT'])
